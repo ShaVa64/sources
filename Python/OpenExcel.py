@@ -1,6 +1,6 @@
 from openpyxl import Workbook, load_workbook
 
-# ,strArray 
+# ,strArray ,dd
 # Read EXCEL file contents to an array
 def ReadExcelFileToArray( strExcelFineName ,arrRules):
     wb = load_workbook(filename = strExcelFineName, read_only=True)
