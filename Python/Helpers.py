@@ -1,6 +1,9 @@
 
-def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strType):                     
+def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strSender,strType):                     
     strSalut = strSalut.strip()
+    if strSalut=='':
+        strHTMLBody ='err: no Salutation'
+        return strHTMLBody
     strSalut += ',' 
     strSalut = strSalut.replace(',,',',')
     strHTMLBody = strSalut
@@ -41,6 +44,10 @@ def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strType):
 
     # strSignature
     strSignature = strSignature.strip()
+    if strSignature=='':
+        strHTMLBody ='err: no Signature'
+        return strHTMLBody
+
     if strSignature == '_NONE':
         strSignature = ' '
     else:    
@@ -59,8 +66,16 @@ def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strType):
         strHTMLBody += strSignature
    # ............................
 
+    # strSignature
     strHTMLBody += '<br/>'
-    strHTMLBody += 'Shalev'
+    strSender = strSender.strip()
+    if strSender=='':
+        strSender ='Shalev'
+    else:    
+        strSender += ' '
+    strHTMLBody += strSender
+   # ............................
+
     return strHTMLBody
 
 
