@@ -1,42 +1,65 @@
 
 def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strType):                     
-    strSalut = strSalut.Strip()
+    strSalut = strSalut.strip()
     strSalut += ',' 
-    strSalut.replace(',,',',')
-    strHTMLBody = strSalut 
+    strSalut = strSalut.replace(',,',',')
+    strHTMLBody = strSalut
+
+    strHTMLBody += '<br/>'
+    strHTMLBody += '<br/>'
     if isVous:
         strHTMLBody += 'Belle et heureuse année à vous et à vos proches !'
     else:
         strHTMLBody += 'Belle et heureuse année à toi et à tes proches !'
     #
-    strHTMLBody += '<b>Que celle-ci soit douce, stimulante et qu''elle nous apporte à tous santé et sérénité.</b>'
+    strHTMLBody += '<br/>'
+    strHTMLBody += '<br/>'
+    strHTMLBody += "<b>Que celle-ci soit douce, stimulante et qu'elle nous apporte à tous santé et sérénité.</b>"
     
     # strAjout 
-    strAjout = strAjout.Strip()
+    strAjout = strAjout.strip()
     if strAjout == '_NONE':
-        strHTMLBody += ' '
-    elif strAjout == '_COMMENT':
-        if isVous:
-            strHTMLBody += 'Comment allez-vous ?'
+        strAjout= ' '
+    else :    
+        strHTMLBody += '<br/>'
+        strHTMLBody += '<br/>'
+        if strAjout == '_COMMENT':
+            if isVous:
+                strAjout= 'Comment allez-vous ?'
+            else:
+                strAjout = 'Comment vas-tu ?'
+        elif strAjout == '_JESPERE':
+            if isVous:
+                strAjout = "J'espère que vous allez bien."
+            else:
+                strAjout = "J'espère que tu vas bien."
         else:
-            strHTMLBody += 'Comment vas-tu ?'
-    else:
-        strHTMLBody +=strAjout 
+            strAjout += ' ' # the explicit ajout is kept !
+        # Only if it is NOT _NONE    
+        strHTMLBody += strAjout 
     # ............................
 
     # strSignature
-    strSignature = strSignature.Strip()
+    strSignature = strSignature.strip()
     if strSignature == '_NONE':
-        strHTMLBody += ' '
-    elif strSignature == '_BIEN':
-        if isVous:
-            strHTMLBody += 'Bien à vous,'
+        strSignature = ' '
+    else:    
+        strHTMLBody += '<br/>'
+        strHTMLBody += '<br/>'
+        if strSignature == '_BIEN':
+            if isVous:
+                strSignature = 'Bien à vous,'
+            else:
+                strSignature = 'Bien à toi,'
         else:
-            strHTMLBody += 'Bien à toi,'
-    else:
-        strHTMLBody +=strSignature 
+            # If explicit signature and it doesn't have a comma at the end :
+            if not strSignature.endswith(',') :
+                strSignature += ',' 
+        # Only if it is NOT _NONE    
+        strHTMLBody += strSignature
    # ............................
 
+    strHTMLBody += '<br/>'
     strHTMLBody += 'Shalev'
     return strHTMLBody
 

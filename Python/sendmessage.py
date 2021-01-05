@@ -12,18 +12,18 @@ def init_ol(strSender):
     return outlook,senderaccount
 
 
-def send_mail_003(outlook,senderaccount,strEmails,strEmailSubject,strHTMLBody,strType,strSendTime,strNow,iListId,iOrdInThisRun):
+def send_mail_003(outlook,senderaccount,iShowDelayInSecs, strEmails,strEmailSubject,strHTMLBody,strType,strSendTime,strNow,iListId,iOrdInThisRun):
 
     mail = outlook.CreateItem(0)
     mail._oleobj_.Invoke(*(64209, 0, 8, 0, senderaccount))
     ### parse emails destinataion(s)
-    strEmails.replace(' ',';',)
-    strEmails.replace(',',';')
+    strEmails = strEmails.replace(' ',';',)
+    strEmails = strEmails.replace(',',';')
     while strEmails.find(';;') >= 0:
-          strEmails.replace(';;',';')
-    strEmailTo=strEmails.Split(';')
+          strEmails = strEmails.replace(';;',';')
+    strEmailTo = strEmails.split(';')
     if len(strEmailTo) == 1:
-        mail.To = strEmailTo(0)
+        mail.To = strEmailTo[0]
     else:
         for strEmail in strEmailTo:
              mail.Recipients.Add(strEmail)
@@ -44,10 +44,11 @@ def send_mail_003(outlook,senderaccount,strEmails,strEmailSubject,strHTMLBody,st
     #
 
     # mail.Attachments.Add(att)
-    mail.Display(False) ## Not modal
     mail.DeferredDeliveryTime = strSendTime
+    if iShowDelayInSecs > 0:
+        mail.Display(False) ## Not modal
+        time.sleep(iShowDelayInSecs)
     mail.Save
-    time.sleep(5)
     mail.Close(0)   # olSave = 0
     ## 
     # mail.SaveAs(9) # Additinal save, not necessary. OlSaveAsType=9 is Format de message unicode Outlook (.msg)
@@ -56,5 +57,6 @@ def send_mail_003(outlook,senderaccount,strEmails,strEmailSubject,strHTMLBody,st
        mail.Save
     ###
     mail.send
+    return True
 
 
