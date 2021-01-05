@@ -1,5 +1,49 @@
-def minutes2hour(iMinutes):
-    strTime = ' ' + str(iMinutes//60).zfill(2)  +':' +str(iMinutes%60).zfill(2) +':00' 
+
+def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strType):                     
+    strSalut = strSalut.Strip()
+    strSalut += ',' 
+    strSalut.replace(',,',',')
+    strHTMLBody = strSalut 
+    if isVous:
+        strHTMLBody += 'Belle et heureuse année à vous et à vos proches !'
+    else:
+        strHTMLBody += 'Belle et heureuse année à toi et à tes proches !'
+    #
+    strHTMLBody += '<b>Que celle-ci soit douce, stimulante et qu''elle nous apporte à tous santé et sérénité.</b>'
+    
+    # strAjout 
+    strAjout = strAjout.Strip()
+    if strAjout == '_NONE':
+        strHTMLBody += ' '
+    elif strAjout == '_COMMENT':
+        if isVous:
+            strHTMLBody += 'Comment allez-vous ?'
+        else:
+            strHTMLBody += 'Comment vas-tu ?'
+    else:
+        strHTMLBody +=strAjout 
+    # ............................
+
+    # strSignature
+    strSignature = strSignature.Strip()
+    if strSignature == '_NONE':
+        strHTMLBody += ' '
+    elif strSignature == '_BIEN':
+        if isVous:
+            strHTMLBody += 'Bien à vous,'
+        else:
+            strHTMLBody += 'Bien à toi,'
+    else:
+        strHTMLBody +=strSignature 
+   # ............................
+
+    strHTMLBody += 'Shalev'
+    return strHTMLBody
+
+
+def minutes2hour(iMinutes,iSeconds):
+    # the %60  around seconds is a mere protection
+    strTime = ' ' + str(iMinutes//60).zfill(2)  +':' +str(iMinutes%60).zfill(2) +':' + str(iSeconds%60).zfill(2)
     return strTime
     
 def PrintArray_2(arrStr):

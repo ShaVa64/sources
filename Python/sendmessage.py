@@ -12,14 +12,27 @@ def init_ol(strSender):
     return outlook,senderaccount
 
 
-def send_mail_003(outlook,senderaccount,name,mailto,strSendTime,strNow,iDebId):
+def send_mail_003(outlook,senderaccount,strEmails,strEmailSubject,strHTMLBody,strType,strSendTime,strNow,iListId,iOrdInThisRun):
+
     mail = outlook.CreateItem(0)
     mail._oleobj_.Invoke(*(64209, 0, 8, 0, senderaccount))
-    mail.To = mailto
-    mail.Subject = 'Bonne Année 2021' + ' (id:'+ str(iDebId) +', created ' + strNow + ',   to send : ' + strSendTime +  ') ' 
+    ### parse emails destinataion(s)
+    strEmails.replace(' ',';',)
+    strEmails.replace(',',';')
+    while strEmails.find(';;') >= 0:
+          strEmails.replace(';;',';')
+    strEmailTo=strEmails.Split(';')
+    if len(strEmailTo) == 1:
+        mail.To = strEmailTo(0)
+    else:
+        for strEmail in strEmailTo:
+             mail.Recipients.Add(strEmail)
+    #........
+
+    mail.Subject = strEmailSubject
+
     mail.BodyFormat = 2   # 2: Html format // olFormatHTML
-    mail.HTMLBody = '<H2>Hello, This is a test mail.</H2>'
-    mail.HTMLBody += '<b>Hello ' + name + '</b>'
+    mail.HTMLBody = strHTMLBody
 
     ### Prob redundant
     # mail_item.InternetCodepage=28591 ## iso-8859-1 	28591
