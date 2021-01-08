@@ -18,8 +18,6 @@ def send_mail_003(outlook,senderaccount,iShowDelayInSecs, strEmails,strEmailSubj
     mail._oleobj_.Invoke(*(64209, 0, 8, 0, senderaccount))
     ### parse emails destinataion(s)
 
-    if strEmails=='':
-            return False
     strEmails = strEmails.replace(' ',';',)
     strEmails = strEmails.replace(',',';')
     while strEmails.find(';;') >= 0:

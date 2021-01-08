@@ -12,24 +12,27 @@ print('''
 
 ==========================================''')
 
-iMaxToSend = 32
+iMaxToSend = 20
 
 dtNowAtStart=datetime.now()
+#. . . . . . . . . 
+# # make sure the right line is the last of the following 2
 strBaseSendDate = dtNowAtStart.strftime('%d/%m/%Y')
-strBaseSendTime='06/01/2021' ## If a predetermined date
-#
+strBaseSendTime='08/01/2021' ## If a predetermined date
+#. . . . . . . . . 
+# make sure the right line is the last of the following 2
+iMinutesStart = 7 * 60 # If a predetermined time, here rounded to an hour
 iMinutesStart =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
-iMinutesStart = 8 * 60 # If a predetermined time, here rounded to an hour
-iMinutesStart += 18 #
-# In any case not before 12 minutes from now
-iMinutesStart += 5 # 
+iMinutesStart += 1 # In any case not before 'x'' minutes from now
+#. . . . . . . . . 
+# 
 strBaseSendDate =str(dtNowAtStart.strftime('%H:%M'))
 iMinutesBetweenEmail = 3 
 #
 strFile='HNY_Emails.xlsx'
 strSheet='HNY_2021'
 strBaseEmailSubject='Belle et heureuse année 2021 !' 
-iShowDelayInSecs = 11
+iShowDelayInSecs = 3
 strTypesToSend = '__,_xTEST_' # The '__' means it's OK to send where the TYPE Column is empty, 
                              #  The ',' is not necessary, just to make it clearer
                              #  Any valid value should have an underscore before and an uderscore after.
@@ -72,19 +75,19 @@ for kk in num:
     strType = '' if pd.isnull(sheet['TYPE'][kk]) else str(sheet['TYPE'][kk]).strip() 
     strDontSend= '' if pd.isnull(sheet['DONT-SEND'][kk]) else str(sheet['DONT-SEND'][kk]).strip() 
     bDontSend = False if strDontSend == '' else True
-    strSent = '' if pd.isnull(sheet['SENT'][kk]) else str(sheet['SENT'][kk]).strip() 
-    bAlreadySent = False  if strSent.strip() == '' else True
+    strLastSent = '' if pd.isnull(sheet['LAST SENT'][kk]) else str(sheet['LAST SENT'][kk]).strip() 
+    bAlreadySent = False  if strLastSent.strip() == '' else True
     strRetour = '' if pd.isnull(sheet['RETOUR'][kk]) else str(sheet['RETOUR'][kk]).strip() 
 
     bTypeNotOK = True if strTypes_NOT_ToSend.find('_'+strType+'_')>=0 else False
     bTypeOK = True if strTypesToSend.find('_'+strType+'_')>=0 else False
 
     if (not bTypeOK) or (bTypeNotOK) or (bDontSend) or (bAlreadySent): 
-        print ('line='+str(kk)+', --> skip : ' + strInfos + ' / ' + strEmails + '[TypeOK='+ str(bTypeOK)+ ' /TypeNotOK: ' +str(bTypeNotOK)+ ' /bDontSend=' +str(bDontSend)+ ' /AlreadySent=' + str(bAlreadySent) +']')
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[TypeOK='+ str(bTypeOK)+ ' /TypeNotOK: ' +str(bTypeNotOK)+ ' /bDontSend=' +str(bDontSend)+ ' /AlreadySent=' + str(bAlreadySent) +']')
         continue
     
     if (strSingle == '') or (strVousTu == '') : 
-        print ('line='+str(kk)+', --> skip : ' + strInfos + ' / ' + strEmails + '[strSingle='+ str(strSingle)+ ' /strVousTu: ' +str(strVousTu)+ ']')
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[strSingle='+ str(strSingle)+ ' /strVousTu: ' +str(strVousTu)+ ']')
         continue
 
     strTimeNow = str(datetime.now().strftime('%d/%m/%Y %H:%M'))
@@ -101,14 +104,16 @@ for kk in num:
     #
     strHTMLBody = Helpers.format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strSender,strType)
     if (strHTMLBody == '') or strHTMLBody.startswith('err'): 
-        print ('line='+str(kk)+', --> skip : ' + strInfos + ' / ' + strEmails + ', [strHTMLBody='+ strHTMLBody +']')
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + ', [strHTMLBody='+ strHTMLBody +']')
         continue
-
+    if strEmails=='':
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strSalut + ' / ' + strEmails + ', [no destinaitaire email]')
+        continue
     #
     sent = sendmessage.send_mail_003(outlook,senderaccount,iShowDelayInSecs,strEmails,strEmailSubject,strHTMLBody,strType,strToSendAt,strTimeNow,kk,iMessagesSent)
     # Do not send tot many at once
     if sent :
-        print ('line='+str(kk)+',==> SENT : ' + strInfos + ' / ' + strSalut + ' / ' +  strEmails + ', to send=[' + strToSendAt +  ']')
+        print ('line='+str(kk)+',>> SENT : ' + strInfos + ' / ' + strSalut + ' / ' +  strEmails + ', to send=[' + strToSendAt +  ']')
         iToSend += 1
         iMessagesSent += 1
         if iMessagesSent >= iMaxToSend :
@@ -116,7 +121,6 @@ for kk in num:
     else:
         iToSend += 1
         print ('line='+str(kk)+',==! SENT FAILED : ' + strInfos + ' / ' + strSalut + ' / ' +  strEmails + ' .')
-        break
 
     #
 
