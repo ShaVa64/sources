@@ -12,26 +12,49 @@ print('''
 
 ==========================================''')
 
-iMaxToSend = 20
+iMaxToSend = 40
 
 dtNowAtStart=datetime.now()
 #. . . . . . . . . 
 # # make sure the right line is the last of the following 2
-strBaseSendDate = dtNowAtStart.strftime('%d/%m/%Y')
-strBaseSendTime='08/01/2021' ## If a predetermined date
+bSendToday = True
+if bSendToday:
+    strBaseSendDate = dtNowAtStart.strftime('%d/%m/%Y')
+else:
+    strBaseSendDate='14/01/2021' ## If a predetermined date
+# make sure explicit date is later than today :
+if strBaseSendDate < dtNowAtStart.strftime('%d/%m/%Y'):
+    # Stop 
+    print (" ***  STOP STOP :: attempting to send at a past date ...")
+    quit()
+     
+
 #. . . . . . . . . 
 # make sure the right line is the last of the following 2
-iMinutesStart = 7 * 60 # If a predetermined time, here rounded to an hour
-iMinutesStart =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
-iMinutesStart += 1 # In any case not before 'x'' minutes from now
-#. . . . . . . . . 
-# 
-strBaseSendDate =str(dtNowAtStart.strftime('%H:%M'))
-iMinutesBetweenEmail = 3 
+bSendNow = True
+if bSendNow:
+    iMinutesStart =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
+else:
+    iMinutesStart = 8 * 60 # If a predetermined time, here rounded to an hour
+    # If the Base date is today than make sure we're not earlier than now :
+    if bSendToday:
+        iMinutesNow =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
+        iMinutesStart = max(iMinutesNow,iMinutesStart)
+
+# So first mail is not earler than 5 mins from now 
+iMinutesStart += 5 
+#
+
+
+# print (proximate value, car seconds are set to '00')
+# strBaseSendTime =  Helpers.minutes2hour(iMinutesStart,0)
+### NOK :: strBaseSendTime =str(dtNowAtStart.strftime('%H:%M'))
+
 #
 strFile='HNY_Emails.xlsx'
 strSheet='HNY_2021'
 strBaseEmailSubject='Belle et heureuse année 2021 !' 
+iMinutesBetweenEmail = 3 ## 
 iShowDelayInSecs = 3
 strTypesToSend = '__,_xTEST_' # The '__' means it's OK to send where the TYPE Column is empty, 
                              #  The ',' is not necessary, just to make it clearer
@@ -50,7 +73,7 @@ num = range(startline, endline)
 iSeconds=random.randrange(0, 59, 1)
 strTime = Helpers.minutes2hour(iMinutesStart,iSeconds)
 
-print('base start date-time is ' + strBaseSendTime + ' ' + strTime + ', time now at start of round : ' + str(dtNowAtStart.strftime('%d/%m/%Y %H:%M')) + ', (' + strBaseSendDate +')')
+print('base start date-time is ' + strBaseSendDate + ' ' + strTime + ', time now at start of round : ' + str(dtNowAtStart.strftime('%d/%m/%Y %H:%M')) + ', (' + strBaseSendDate +')')
 print('Excel has '+ str(lines+1) + ' lines.)')
 # Init outlook
 strSender="shalev@isako.com"
@@ -96,7 +119,8 @@ for kk in num:
     iMinutesToSend= iMinutesStart + (iToSend * iMinutesBetweenEmail)
     iSeconds = random.randrange(0,59,1)
     strMinutesSendAt =  Helpers.minutes2hour(iMinutesToSend,iSeconds)
-    strToSendAt= strBaseSendTime + strMinutesSendAt
+    ### NOK :: strToSendAt= strBaseSendTime + strMinutesSendAt
+    strToSendAt= strBaseSendDate + strMinutesSendAt
     #
     strEmailSubject = strBaseEmailSubject    
     if strType == 'TEST':

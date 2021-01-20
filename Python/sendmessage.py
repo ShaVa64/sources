@@ -57,7 +57,12 @@ def send_mail_003(outlook,senderaccount,iShowDelayInSecs, strEmails,strEmailSubj
     if not (mail.Saved): 
        mail.Save
     ###
-    mail.send
+
+    try:
+        mail.send
+    except: 
+        return False
+
     return True
 
 
