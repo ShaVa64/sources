@@ -16,9 +16,14 @@ def format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strSender,st
         strHTMLBody += 'Belle et heureuse année à toi et à tes proches !'
     #
     strHTMLBody += '<br/>'
-    strHTMLBody += '<br/>'
-    strHTMLBody += "<b>Que celle-ci soit douce, stimulante et qu'elle nous apporte à tous santé et sérénité.</b>"
-    
+    # one liner (2023)::
+    strHTMLBody += "<b>Que celle-ci soit calme et qu'elle nous apporte à tous santé et douceur.</b>"
+    # multi lines (2022) ::
+    # strHTMLBody += "<br/><b>Que celle-ci soit Stimulante et Doux,</b>"
+    # strHTMLBody += "<br/><b>&nbsp; Qu'elle nous apporte à tous</b>"
+    # strHTMLBody += "<br/><b>&nbsp;&nbsp; Santé et Sérénité, et</b>"
+    # strHTMLBody += "<br/><b>&nbsp;&nbsp;&nbsp; Que nous restions Calmes dans les tempêtes.</b>" 
+
     # strAjout 
     strAjout = strAjout.strip()
     if strAjout == '_NONE':

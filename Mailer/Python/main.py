@@ -12,7 +12,16 @@ print('''
 
 ==========================================''')
 
-iMaxToSend = 40
+
+iMaxToSend = 6 # 40
+
+# Filtrage avec Prio (from 01/2022)
+iPrioMinForThisRun=10  #1 and up, 0=ignore
+iPrioMaxForThisRun=10  #1 and up, 0=ignore, 'Max' >= 'Min'
+if (iPrioMaxForThisRun < iPrioMinForThisRun):
+    # Stop 
+    print (' ***  STOP STOP :: iPrioMaxForThisRun ('+ str(iPrioMaxForThisRun) +') < iPrioMinForThisRun ('+ str(iPrioMinForThisRun) +')')
+    quit()
 
 dtNowAtStart=datetime.now()
 #. . . . . . . . . 
@@ -21,7 +30,7 @@ bSendToday = True
 if bSendToday:
     strBaseSendDate = dtNowAtStart.strftime('%d/%m/%Y')
 else:
-    strBaseSendDate='14/01/2021' ## If a predetermined date
+    strBaseSendDate='03/01/2023' ## If a predetermined date
 # make sure explicit date is later than today :
 if strBaseSendDate < dtNowAtStart.strftime('%d/%m/%Y'):
     # Stop 
@@ -35,7 +44,8 @@ bSendNow = True
 if bSendNow:
     iMinutesStart =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
 else:
-    iMinutesStart = 8 * 60 # If a predetermined time, here rounded to an hour
+    iMinsPerHour = 60
+    iMinutesStart = (11 * iMinsPerHour) + 28 # If a predetermined time, here rounded to an hour, so '(8 * 60) + 25 ' is start sending at 8h25
     # If the Base date is today than make sure we're not earlier than now :
     if bSendToday:
         iMinutesNow =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
@@ -50,13 +60,13 @@ iMinutesStart += 5
 # strBaseSendTime =  Helpers.minutes2hour(iMinutesStart,0)
 ### NOK :: strBaseSendTime =str(dtNowAtStart.strftime('%H:%M'))
 
-#
-strFile='HNY_Emails.xlsx'
-strSheet='HNY_2021'
-strBaseEmailSubject='Belle et heureuse année 2021 !' 
+# New sheet every year
+strFile='..\..\HNY_Emails_MultiYears.xlsx'
+strSheet='HNY_2023'
+strBaseEmailSubject='Belle et heureuse année 2023 !' 
 iMinutesBetweenEmail = 3 ## 
 iShowDelayInSecs = 3
-strTypesToSend = '__,_xTEST_' # The '__' means it's OK to send where the TYPE Column is empty, 
+strTypesToSend = '__,_TEST_' # The '__' means it's OK to send where the TYPE Column is empty, 
                              #  The ',' is not necessary, just to make it clearer
                              #  Any valid value should have an underscore before and an uderscore after.
 strTypes_NOT_ToSend = '_DADA_DODO_'
@@ -101,9 +111,18 @@ for kk in num:
     strLastSent = '' if pd.isnull(sheet['LAST SENT'][kk]) else str(sheet['LAST SENT'][kk]).strip() 
     bAlreadySent = False  if strLastSent.strip() == '' else True
     strRetour = '' if pd.isnull(sheet['RETOUR'][kk]) else str(sheet['RETOUR'][kk]).strip() 
+    iPrio = 0 if pd.isnull(sheet['PRIO'][kk]) else int(sheet['PRIO'][kk]) # 
 
     bTypeNotOK = True if strTypes_NOT_ToSend.find('_'+strType+'_')>=0 else False
     bTypeOK = True if strTypesToSend.find('_'+strType+'_')>=0 else False
+
+    # Added 01/2022 - premier filter using Prio
+    if (iPrioMinForThisRun >= 1) and (iPrioMinForThisRun < iPrio): 
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[iPrioMinForThisRun='+ str(iPrioMinForThisRun)+ ' == 0 or < ' +str(iPrio) +']')
+        continue
+    if (iPrioMaxForThisRun >= 1) and (iPrioMaxForThisRun > iPrio): 
+        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[iPrioMaxForThisRun='+ str(iPrioMaxForThisRun)+ ' == 0 or > ' +str(iPrio) +']')
+        continue
 
     if (not bTypeOK) or (bTypeNotOK) or (bDontSend) or (bAlreadySent): 
         print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[TypeOK='+ str(bTypeOK)+ ' /TypeNotOK: ' +str(bTypeNotOK)+ ' /bDontSend=' +str(bDontSend)+ ' /AlreadySent=' + str(bAlreadySent) +']')
@@ -149,7 +168,7 @@ for kk in num:
     #
 
 print (' ')
-print ('Sending ended at ' + str(datetime.now()) + ', last kk is : ' + str(kk)+ ', mesges sent : ' + str(iMessagesSent))
+print ('Sending ended at ' + str(datetime.now()) + ', last kk is : ' + str(kk)+ ', msges sent : ' + str(iMessagesSent))
 print('''
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::: ''')
