@@ -6,18 +6,20 @@ import sendmessage
 import Helpers
 from datetime import datetime
 import pandas as pd
-
+import unicodedata
 
 print('''
 
+# Challenge for 2024 : automate the marquage of "sent" which is still time consuming
 ==========================================''')
 
 
-iMaxToSend = 6 # 40
+iMaxToSend = 150 # 40
 
 # Filtrage avec Prio (from 01/2022)
-iPrioMinForThisRun=10  #1 and up, 0=ignore
-iPrioMaxForThisRun=10  #1 and up, 0=ignore, 'Max' >= 'Min'
+iPrioMinForThisRun=0  #1 and up, 0=ignore
+iPrioMaxForThisRun=0  #1 and up, 0=ignore, 'Max' >= 'Min'
+strLastTimeToSend= '19:14:59'  # usually at the evening
 if (iPrioMaxForThisRun < iPrioMinForThisRun):
     # Stop 
     print (' ***  STOP STOP :: iPrioMaxForThisRun ('+ str(iPrioMaxForThisRun) +') < iPrioMinForThisRun ('+ str(iPrioMinForThisRun) +')')
@@ -26,11 +28,11 @@ if (iPrioMaxForThisRun < iPrioMinForThisRun):
 dtNowAtStart=datetime.now()
 #. . . . . . . . . 
 # # make sure the right line is the last of the following 2
-bSendToday = True
+bSendToday = True # False # True
 if bSendToday:
     strBaseSendDate = dtNowAtStart.strftime('%d/%m/%Y')
 else:
-    strBaseSendDate='03/01/2023' ## If a predetermined date
+    strBaseSendDate='05/01/2023' ## If a predetermined date
 # make sure explicit date is later than today :
 if strBaseSendDate < dtNowAtStart.strftime('%d/%m/%Y'):
     # Stop 
@@ -40,12 +42,13 @@ if strBaseSendDate < dtNowAtStart.strftime('%d/%m/%Y'):
 
 #. . . . . . . . . 
 # make sure the right line is the last of the following 2
-bSendNow = True
+bSendNow = True # False # True
 if bSendNow:
     iMinutesStart =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
 else:
+    # If a specific Start Hour ::
     iMinsPerHour = 60
-    iMinutesStart = (11 * iMinsPerHour) + 28 # If a predetermined time, here rounded to an hour, so '(8 * 60) + 25 ' is start sending at 8h25
+    iMinutesStart = (7 * iMinsPerHour) + 15 # If a predetermined time, here rounded to an hour, so '(8 * 60) + 25 ' is start sending at 8h25
     # If the Base date is today than make sure we're not earlier than now :
     if bSendToday:
         iMinutesNow =int(dtNowAtStart.strftime('%H'))*60 + int(dtNowAtStart.strftime('%M')) ## "%H:%M:%S.%fZ"
@@ -66,7 +69,7 @@ strSheet='HNY_2023'
 strBaseEmailSubject='Belle et heureuse année 2023 !' 
 iMinutesBetweenEmail = 3 ## 
 iShowDelayInSecs = 3
-strTypesToSend = '__,_TEST_' # The '__' means it's OK to send where the TYPE Column is empty, 
+strTypesToSend = '__,_xTEST_'# The '__' means it's OK to send where the TYPE Column is empty, 
                              #  The ',' is not necessary, just to make it clearer
                              #  Any valid value should have an underscore before and an uderscore after.
 strTypes_NOT_ToSend = '_DADA_DODO_'
@@ -84,6 +87,7 @@ iSeconds=random.randrange(0, 59, 1)
 strTime = Helpers.minutes2hour(iMinutesStart,iSeconds)
 
 print('base start date-time is ' + strBaseSendDate + ' ' + strTime + ', time now at start of round : ' + str(dtNowAtStart.strftime('%d/%m/%Y %H:%M')) + ', (' + strBaseSendDate +')')
+print('LastTimeToSend is : ' + strLastTimeToSend+ '. ')
 print('Excel has '+ str(lines+1) + ' lines.)')
 # Init outlook
 strSender="shalev@isako.com"
@@ -111,25 +115,28 @@ for kk in num:
     strLastSent = '' if pd.isnull(sheet['LAST SENT'][kk]) else str(sheet['LAST SENT'][kk]).strip() 
     bAlreadySent = False  if strLastSent.strip() == '' else True
     strRetour = '' if pd.isnull(sheet['RETOUR'][kk]) else str(sheet['RETOUR'][kk]).strip() 
-    iPrio = 0 if pd.isnull(sheet['PRIO'][kk]) else int(sheet['PRIO'][kk]) # 
-
+    #
+    strPrio = '' if pd.isnull(sheet['PRIO'][kk]) else str(sheet['PRIO'][kk]).strip() 
+    iPrio = int(strPrio) if strPrio.isnumeric() else 0
+    #    
     bTypeNotOK = True if strTypes_NOT_ToSend.find('_'+strType+'_')>=0 else False
     bTypeOK = True if strTypesToSend.find('_'+strType+'_')>=0 else False
 
     # Added 01/2022 - premier filter using Prio
-    if (iPrioMinForThisRun >= 1) and (iPrioMinForThisRun < iPrio): 
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[iPrioMinForThisRun='+ str(iPrioMinForThisRun)+ ' == 0 or < ' +str(iPrio) +']')
+    if (iPrioMinForThisRun >= 1) and (iPrio < iPrioMinForThisRun): 
+        print ('line='+str(kk)+', ----> skip (prioMin) : ' + strInfos + ' / ' + strEmails + ' [iPrioMinForThisRun='+ str(iPrioMinForThisRun)+ ' == 0 or < ' +str(iPrio) +']')
         continue
-    if (iPrioMaxForThisRun >= 1) and (iPrioMaxForThisRun > iPrio): 
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[iPrioMaxForThisRun='+ str(iPrioMaxForThisRun)+ ' == 0 or > ' +str(iPrio) +']')
+
+    if (iPrioMaxForThisRun >= 1) and (iPrio > iPrioMaxForThisRun ): 
+        print ('line='+str(kk)+', ----> skip (prioMax) : ' + strInfos + ' / ' + strEmails + ' [iPrioMaxForThisRun='+ str(iPrioMaxForThisRun)+ ' == 0 or > ' +str(iPrio) +']')
         continue
 
     if (not bTypeOK) or (bTypeNotOK) or (bDontSend) or (bAlreadySent): 
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[TypeOK='+ str(bTypeOK)+ ' /TypeNotOK: ' +str(bTypeNotOK)+ ' /bDontSend=' +str(bDontSend)+ ' /AlreadySent=' + str(bAlreadySent) +']')
+        print ('line='+str(kk)+', ----> skip (TypeOK/TypeNOK/DontSend/AlreadySent): ' + strInfos + ' / ' + strEmails + ' [TypeOK='+ str(bTypeOK)+ ' /TypeNotOK: ' +str(bTypeNotOK)+ ' /bDontSend=' +str(bDontSend)+ ' /AlreadySent=' + str(bAlreadySent) +']')
         continue
     
     if (strSingle == '') or (strVousTu == '') : 
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + '[strSingle='+ str(strSingle)+ ' /strVousTu: ' +str(strVousTu)+ ']')
+        print ('line='+str(kk)+', ----> skip (Tu/Vous) : ' + strInfos + ' / ' + strEmails + ' [strSingle='+ str(strSingle)+ ' /strVousTu: ' +str(strVousTu)+ ']')
         continue
 
     strTimeNow = str(datetime.now().strftime('%d/%m/%Y %H:%M'))
@@ -143,15 +150,21 @@ for kk in num:
     #
     strEmailSubject = strBaseEmailSubject    
     if strType == 'TEST':
-        strEmailSubject += ' (sent=['+ str(iToSend)+ ']/xl=['+ str(kk+1) +'], created=[' + strTimeNow + '],  to send=[' + strToSendAt +  '] )' 
+        strEmailSubject += ' (sent=['+ str(iToSend)+ ']/max=['+ str(iMaxToSend) +'], created=[' + strTimeNow + '],  to send=[' + strToSendAt +  '] )' 
     #
     strHTMLBody = Helpers.format_HTML_body(strSalut,isSingle,isVous,strAjout,strSignature,strSender,strType)
     if (strHTMLBody == '') or strHTMLBody.startswith('err'): 
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strEmails + ', [strHTMLBody='+ strHTMLBody +']')
+        print ('line='+str(kk)+', ----> skip (Body NOK) : ' + strInfos + ' / ' + strEmails + ', [strHTMLBody='+ strHTMLBody +']')
         continue
     if strEmails=='':
-        print ('line='+str(kk)+', ----> skip : ' + strInfos + ' / ' + strSalut + ' / ' + strEmails + ', [no destinaitaire email]')
+        print ('line='+str(kk)+', ----> skip (Dest emails NOK) : ' + strInfos + ' / ' + strSalut + ' / ' + strEmails + ', [no destinaitaire email]')
         continue
+    # Don't send too late in the evening
+    if strMinutesSendAt.strip()  > strLastTimeToSend.strip() :
+        print ('----> STOP : timeToSend is too late.')
+        print ('Last sendable time this evening ('+ strLastTimeToSend.strip() + ' < ' + strMinutesSendAt.strip()  + ') was just reached. A demain.')
+        print ('Lines handled so far : '+str(kk)+', Msges dent so far : ' +str(iMessagesSent)+ '.' )  
+        break
     #
     sent = sendmessage.send_mail_003(outlook,senderaccount,iShowDelayInSecs,strEmails,strEmailSubject,strHTMLBody,strType,strToSendAt,strTimeNow,kk,iMessagesSent)
     # Do not send tot many at once
